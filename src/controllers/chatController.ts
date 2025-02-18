@@ -4,18 +4,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const TIMEOUT = 100000; // 100 segundos
-
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  timeout: TIMEOUT,
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 export const chatController = {
   generateChatResponse: async (req: Request, res: Response) => {
-    const abortController = new AbortController();
-    const timeout = setTimeout(() => abortController.abort(), TIMEOUT);
-
     try {
       const { messages } = req.body;
       
@@ -64,7 +58,6 @@ export const chatController = {
             - Movilidad: ${tourData.DificultadMovilidad}
             - Transporte: ${tourData.MediosTransporte}
             - Presupuesto/persona: ${tourData.Presupuesto} ${tourData.DivisaUsar}
-            - Comidas: ${tourData.Restaurantes}
             - Paradas obligatorias: ${tourData.ParadasObligatorias}
             - Excluir: ${tourData.ParadasBanned}
             - Actividades/día: ${tourData.NumActividades}`
@@ -82,21 +75,11 @@ export const chatController = {
          ]
       });
 
-      clearTimeout(timeout);
       res.json({
         success: true,
         data: completion.choices[0].message
       });
     } catch (error: any) {
-      clearTimeout(timeout);
-      
-      if (error.name === 'AbortError') {
-        return res.status(408).json({
-          success: false,
-          error: 'La solicitud ha excedido el tiempo límite'
-        });
-      }
-
       console.error('Error en generateChatResponse:', error);
       res.status(error.status || 500).json({
         success: false,

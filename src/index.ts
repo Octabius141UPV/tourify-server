@@ -6,7 +6,7 @@ import { router } from './routes';
 dotenv.config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '8000', 10);
 
 const allowedOrigins = [
   'http://localhost:3000',

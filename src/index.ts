@@ -8,28 +8,28 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://tourifyapp.es',
-  'https://www.tourifyapp.es',
-];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('No permitido por CORS'));
+// Configuración de CORS según el entorno
+const corsOptions = process.env.NODE_ENV === 'production' 
+  ? {
+      origin: [
+        'https://tourifyapp.es',
+        'https://www.tourifyapp.es'
+      ],
+      methods: ['POST', 'GET'],
+      credentials: true
     }
-  },
-  methods: ['POST, GET'],
-  credentials: true
-}));
+  : {
+      origin: '*', // Permite cualquier origen en desarrollo
+      methods: ['POST', 'GET'],
+      credentials: true
+    };
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
-
 app.use('/', router);
 
 app.listen(PORT, () => {
-  console.log(`Servidor de ChatGPT corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Modo: ${process.env.NODE_ENV || 'desarrollo'}`);
 });

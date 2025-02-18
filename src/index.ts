@@ -8,13 +8,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Obtener dominios permitidos desde .env
+const allowedDomains = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
+
 // Configuración de CORS según el entorno
 const corsOptions = process.env.NODE_ENV === 'production' 
   ? {
-      origin: [
-        'https://tourifyapp.es',
-        'https://www.tourifyapp.es'
-      ],
+      origin: allowedDomains,
       methods: ['POST', 'GET'],
       credentials: true
     }

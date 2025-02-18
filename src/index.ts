@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 8000;
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://tu-dominio-produccion.com'
+  'https://tourifyapp.es',
+  'https://www.tourifyapp.es',
 ];
 
 app.use(cors({

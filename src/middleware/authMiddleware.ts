@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getAuth } from 'firebase-admin/auth';
+import { auth } from '../config/firebase';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -14,8 +14,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     const token = authHeader.split(' ')[1];
     
-    // Verificar el token con Firebase
-    await getAuth().verifyIdToken(token);
+    // Verificar el token con Firebase Admin
+    await auth.verifyIdToken(token);
     
     next();
   } catch (error) {

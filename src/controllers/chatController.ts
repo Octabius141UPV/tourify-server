@@ -4,23 +4,39 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-if (!process.env.OPENAI_API_KEY) {
-  console.error('Error: OPENAI_API_KEY no está definida en las variables de entorno');
-  process.exit(1);
-}
+const TIMEOUT = 100000; // 100 segundos
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: TIMEOUT,
 });
 
 export const chatController = {
   generateChatResponse: async (req: Request, res: Response) => {
+    const abortController = new AbortController();
+    const timeout = setTimeout(() => abortController.abort(), TIMEOUT);
+
     try {
       const { messages } = req.body;
+      
+      if (!messages?.length || !messages[0]) {
+        return res.status(400).json({
+          success: false,
+          error: 'Se requieren datos válidos para generar el itinerario'
+        });
+      }
+
       const tourData = messages[0];
 
-      if (!messages || !Array.isArray(messages) || !tourData) {
-        return res.status(400).json({ error: 'Se requiere un array de mensajes con datos válidos' });
+      // Validación de campos requeridos
+      const requiredFields = ['Ciudad', 'DiaLlegada', 'DiaSalida', 'Presupuesto'];
+      for (const field of requiredFields) {
+        if (!tourData[field]) {
+          return res.status(400).json({
+            success: false,
+            error: `El campo ${field} es requerido`
+          });
+        }
       }
 
       const completion = await openai.chat.completions.create({
@@ -63,17 +79,30 @@ export const chatController = {
             - Información detallada de cada lugar
             El itinerario considerará las restricciones de movilidad y presupuesto especificados.`
           }
-        ]
+         ]
       });
 
+      clearTimeout(timeout);
       res.json({
         success: true,
         data: completion.choices[0].message
       });
     } catch (error: any) {
-      res.status(500).json({
+      clearTimeout(timeout);
+      
+      if (error.name === 'AbortError') {
+        return res.status(408).json({
+          success: false,
+          error: 'La solicitud ha excedido el tiempo límite'
+        });
+      }
+
+      console.error('Error en generateChatResponse:', error);
+      res.status(error.status || 500).json({
         success: false,
-        error: error.response?.data?.error?.message || 'Error al procesar la solicitud'
+        error: process.env.NODE_ENV === 'production' 
+          ? 'Error al procesar la solicitud'
+          : error.message
       });
     }
   }

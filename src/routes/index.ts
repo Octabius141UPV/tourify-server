@@ -6,6 +6,9 @@ import { unsplashController } from '../controllers/unsplashController';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { limiter } from '../middleware/rateLimitMiddleware';
 import { placesController } from '../controllers/placesController';
+import { createActivityController } from '../controllers/createActivityController';
+import { fingerprintMiddleware } from '../middleware/fingerprintMiddleware';
+import { anonymousGuideController } from '../controllers/anonymousGuideController'; 
 
 export const router = Router();
 
@@ -16,6 +19,7 @@ router.get('/', (req, res) => {
 
 // Rutas protegidas con autenticación de Firebase
 router.post('/createGuide', authMiddleware, limiter, chatController.generateChatResponse);
+router.post('/createActivity', authMiddleware, limiter, createActivityController.createActivity); // Nueva ruta
 router.post('/renewActivity', authMiddleware, limiter, activityController.renewActivity);
 router.post('/editActivity', authMiddleware, limiter, editActivityController.editActivity);
 
@@ -26,4 +30,6 @@ router.get('/cityImage', authMiddleware, unsplashController.getCityImage);
 router.post('/verify-location', authMiddleware, placesController.verifyLocation);
 router.get('/place-details/:placeId', authMiddleware, placesController.getPlaceDetails);
 
-// Eliminar la ruta de actualización de actividad que ya no necesitamos
+// Rutas para guías anónimas
+router.post('/anonymous/generateGuide', fingerprintMiddleware, anonymousGuideController.generateGuide);
+

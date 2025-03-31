@@ -9,6 +9,7 @@ import { placesController } from '../controllers/placesController';
 import { createActivityController } from '../controllers/createActivityController';
 import { fingerprintMiddleware } from '../middleware/fingerprintMiddleware';
 import { anonymousGuideController } from '../controllers/anonymousGuideController'; 
+import { discoverActivitiesController } from '../controllers/discoverActivities';
 
 export const router = Router();
 
@@ -32,4 +33,20 @@ router.get('/place-details/:placeId', authMiddleware, placesController.getPlaceD
 
 // Rutas para guías anónimas
 router.post('/anonymous/generateGuide', fingerprintMiddleware, anonymousGuideController.generateGuide);
+
+
+// Rutas para descubrir actividades
+router.get('/discover/:city/es', (req, res) => {
+  req.query.lang = 'es';
+  discoverActivitiesController.getActivities(req, res);
+});
+
+router.get('/discover/:city/en', (req, res) => {
+  req.query.lang = 'en';
+  discoverActivitiesController.getActivities(req, res);
+});
+
+// Ruta por defecto (español)
+router.get('/discover/:city', discoverActivitiesController.getActivities);
+
 

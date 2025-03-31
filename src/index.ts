@@ -16,12 +16,14 @@ const corsOptions = process.env.NODE_ENV === 'production'
   ? {
       origin: allowedDomains,
       methods: ['POST', 'GET'],
-      credentials: true
+      credentials: true,
+      headers: ['Content-Type', 'Accept', 'Connection']
     }
   : {
       origin: '*', // Permite cualquier origen en desarrollo
       methods: ['POST', 'GET'],
-      credentials: true
+      credentials: true,
+      headers: ['Content-Type', 'Accept', 'Connection']
     };
 
 app.use(cors(corsOptions));

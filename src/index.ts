@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 4000;
 // Configuración CORS más restrictiva para producción
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://tourify.vercel.app', 'https://*.tourify.app'] // Dominios permitidos en producción
+    ? ['https://', 'https://*.tourify.app'] // Dominios permitidos en producción
     : '*',
   methods: ['POST', 'GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],

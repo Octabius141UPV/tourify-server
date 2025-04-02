@@ -76,7 +76,7 @@ const messages = {
     3. Formato exacto: {"title": "nombre actividad", "description": "descripción"}
     4. NO agregues números, viñetas o texto adicional
     5. IMPORTANTE: Si el título tiene más de 3 palabras, la actividad será rechazada`,
-    userMessage: (city: string) => `Genera 3 actividades turísticas únicas para ${city}. RECUERDA: Una actividad por línea en formato JSON.`
+    userMessage: (city: string) => `Genera 10 actividades turísticas únicas para ${city}. RECUERDA: Una actividad por línea en formato JSON.`
   },
   en: {
     systemMessage: `You are an expert tour guide. IMPORTANT: Generate each activity as an independent JSON,

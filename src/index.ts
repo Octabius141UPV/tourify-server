@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 4000;
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://erasmus-activities.vercel.app', 'https://*.tourifyapp.es'] // Dominios permitidos en producción
-    : ['http://localhost:3000'], // Permitir localhost:3000 en desarrollo
+    : ['*'], // Permitir localhost:3000 en desarrollo
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,

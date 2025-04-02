@@ -13,11 +13,6 @@ import { discoverActivitiesController } from '../controllers/discoverActivities'
 
 export const router = Router();
 
-// Ruta de prueba (health check)
-router.get('/', (req, res) => {
-  res.json({ message: 'API funcionando correctamente' });
-});
-
 // Rutas protegidas con autenticación de Firebase
 router.post('/createGuide', authMiddleware, limiter, chatController.generateChatResponse);
 router.post('/createActivity', authMiddleware, limiter, createActivityController.createActivity); // Nueva ruta
@@ -33,7 +28,6 @@ router.get('/place-details/:placeId', authMiddleware, placesController.getPlaceD
 
 // Rutas para guías anónimas
 router.post('/anonymous/generateGuide', fingerprintMiddleware, anonymousGuideController.generateGuide);
-
 
 // Rutas para descubrir actividades
 router.get('/discover/:city/es', (req, res) => {

@@ -16,10 +16,15 @@ const openai = new OpenAI({
 export const chatController = {
   generateChatResponse: async (req: Request, res: Response) => {
     try {
+     
+
+     
+
       if (process.env.NODE_ENV === 'testing') {
         console.log('[Testing] Iniciando generación de respuesta del chat');
       }
 
+      // Configurar headers para SSE
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
@@ -144,6 +149,12 @@ export const chatController = {
       res.end();
 
     } catch (error: any) {
+      console.error('Error detallado:', error);
+      // Asegurar que los headers de CORS se envíen incluso en caso de error
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
       if (process.env.NODE_ENV === 'testing') {
         console.log('[Testing] Error en el controlador:', error);
       }

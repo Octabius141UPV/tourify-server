@@ -29,11 +29,18 @@ async function searchImagesWithTavily(query: string): Promise<string | null> {
         'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
       },
       body: JSON.stringify({
-        query: `${query} tourism landmark photo`,
+        query: `${query} tourism landmark photo rectangular horizontal`,
         search_depth: "basic",
         include_images: true,
         images_only: true,
-        max_results: 1
+        max_results: 1,
+        image_params: {
+          min_width: 800,
+          max_width: 1200,
+          min_height: 450,  // Aproximadamente 16:9
+          max_height: 675,  // Mantiene la proporción 16:9
+          prefer_small_size: true
+        }
       })
     });
 

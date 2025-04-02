@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { openai } from '../config/openai';
+import { openai } from '../../config/openai';
 
 const activityCategories: { [key: string]: string } = {
   'museo': 'museum building architecture',
@@ -20,34 +20,44 @@ function normalizeText(text: string): string {
     .replace(/[^\x00-\x7F]/g, '');    // Solo caracteres ASCII
 }
 
-async function generateImageForActivity(activity: any, city: string): Promise<string | null> {
+async function searchImagesWithTavily(query: string): Promise<string | null> {
   try {
-    // Normalizar texto para la búsqueda
-    const normalizedTitle = normalizeText(activity.title);
-    const normalizedCity = normalizeText(city);
-    
-    const searchQuery = encodeURIComponent(`${normalizedTitle} tourism photo in ${normalizedCity}`);
-    const url = `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=10&orientation=portrait`;
-
-    const response = await fetch(url, {
+    const response = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
       headers: {
-        'Authorization': process.env.PEXELS_API_KEY || ''
-      }
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
+      },
+      body: JSON.stringify({
+        query: `${query} tourism landmark photo`,
+        search_depth: "basic",
+        include_images: true,
+        images_only: true,
+        max_results: 1
+      })
     });
 
-    if (!response.ok) throw new Error(`Error Pexels: ${response.status}`);
-
     const data = await response.json();
-    if (!data.photos?.length) return null;
-
-    // Obtener una foto aleatoria de los resultados
-    const randomIndex = Math.floor(Math.random() * Math.min(data.photos.length, 5));
-    return data.photos[randomIndex].src.large;
-
+    if (data.images.length == 0) {
+      console.error('No se encontraron imágenes para la consulta:', query);
+      return null;
+    }
+    if (data.images.length > 0) {
+    
+      return data.images[0];
+    }
   } catch (error) {
-    console.error('Error generando imagen:', error);
+    console.error('Error en Tavily API:', error);
     return null;
   }
+  return null; // Ensure a return value in all code paths
+}
+
+async function generateImageForActivity(activity: any, city: string): Promise<string | null> {
+  const searchQuery = `${activity.title} ${city}`;
+  return await searchImagesWithTavily(searchQuery);
+   // Logging para depuración
+
 }
 
 // Añadir función de validación
@@ -66,7 +76,7 @@ const messages = {
     3. Formato exacto: {"title": "nombre actividad", "description": "descripción"}
     4. NO agregues números, viñetas o texto adicional
     5. IMPORTANTE: Si el título tiene más de 3 palabras, la actividad será rechazada`,
-    userMessage: (city: string) => `Genera 20 actividades turísticas únicas para ${city}. RECUERDA: Una actividad por línea en formato JSON.`
+    userMessage: (city: string) => `Genera 3 actividades turísticas únicas para ${city}. RECUERDA: Una actividad por línea en formato JSON.`
   },
   en: {
     systemMessage: `You are an expert tour guide. IMPORTANT: Generate each activity as an independent JSON,
@@ -78,7 +88,7 @@ const messages = {
     3. Exact format: {"title": "activity name", "description": "description"}
     4. DO NOT add numbers, bullets or additional text
     5. IMPORTANT: If the title has more than 3 words, the activity will be rejected`,
-    userMessage: (city: string) => `Generate 20 unique tourist activities for ${city}. REMEMBER: One activity per line in JSON format.`
+    userMessage: (city: string) => `Generate 10 unique tourist activities for ${city}. REMEMBER: One activity per line in JSON format.`
   }
 };
 
@@ -101,7 +111,7 @@ export const discoverActivitiesController = {
           { role: "system", content: messages[lang].systemMessage },
           { role: "user", content: messages[lang].userMessage(city) }
         ],
-        model: "gpt-4o-mini",
+        model: "gpt-4o-mini", 
         stream: true,
         temperature: 0.7,
         max_tokens: 2000,
@@ -110,7 +120,7 @@ export const discoverActivitiesController = {
 
       let buffer = '';
       let activitiesProcessed = 0;
-      const maxActivities = 20; // Cambiado a 20 actividades
+      const maxActivities = 10; // Cambiado a 10 actividades
       
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
@@ -135,6 +145,7 @@ export const discoverActivitiesController = {
                     description: activity.description,
                     image: imageUrl
                   };
+                 
                   
                   activitiesProcessed++;
                   res.write(`data: ${JSON.stringify(activityWithImage)}\n\n`);

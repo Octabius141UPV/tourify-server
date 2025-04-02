@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Timestamp } from 'firebase-admin/firestore';
 import OpenAI from 'openai';
-import { db } from '../config/firebase';
+import { db } from '../../config/firebase';
 import dotenv from 'dotenv';
 
 dotenv.config();

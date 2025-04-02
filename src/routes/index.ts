@@ -1,15 +1,15 @@
 import { Router } from 'express';
-import { chatController } from '../controllers/chatController';
-import { activityController } from '../controllers/activityController';
-import { editActivityController } from '../controllers/editActivityController';
-import { unsplashController } from '../controllers/unsplashController';
+import { chatController } from '../controllers/tourify/chatController';
+import { activityController } from '../controllers/tourify/activityController';
+import { editActivityController } from '../controllers/tourify/editActivityController';
+import { unsplashController } from '../controllers/tourify/unsplashController';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { limiter } from '../middleware/rateLimitMiddleware';
-import { placesController } from '../controllers/placesController';
-import { createActivityController } from '../controllers/createActivityController';
+import { placesController } from '../controllers/tourify/placesController';
+import { createActivityController } from '../controllers/tourify/createActivityController';
 import { fingerprintMiddleware } from '../middleware/fingerprintMiddleware';
-import { anonymousGuideController } from '../controllers/anonymousGuideController'; 
-import { discoverActivitiesController } from '../controllers/discoverActivities';
+import { anonymousGuideController } from '../controllers/tourify/anonymousGuideController'; 
+import { discoverActivitiesController } from '../controllers/erasmus_activities/discoverActivities';
 
 export const router = Router();
 
@@ -30,17 +30,10 @@ router.get('/place-details/:placeId', authMiddleware, placesController.getPlaceD
 router.post('/anonymous/generateGuide', fingerprintMiddleware, anonymousGuideController.generateGuide);
 
 // Rutas para descubrir actividades
-router.get('/discover/:city/es', (req, res) => {
-  req.query.lang = 'es';
+router.get('/discover/:city/:lang?', (req, res) => {
+  const lang = req.params.lang || 'es';
+  req.query.lang = lang;
   discoverActivitiesController.getActivities(req, res);
 });
-
-router.get('/discover/:city/en', (req, res) => {
-  req.query.lang = 'en';
-  discoverActivitiesController.getActivities(req, res);
-});
-
-// Ruta por defecto (español)
-router.get('/discover/:city', discoverActivitiesController.getActivities);
 
 

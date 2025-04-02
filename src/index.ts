@@ -11,13 +11,16 @@ const PORT = process.env.PORT || 4000;
 
 // Configuración CORS más restrictiva para producción
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://erasmus-activities.vercel.app', 'https://*.tourifyapp.es'] // Dominios permitidos en producción
-    : ['*'], // Permitir localhost:3000 en desarrollo
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  maxAge: 86400, // Cache preflight por 24 horas
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://erasmus-activities.vercel.app', 'https://tourifyapp.es', 'https://www.tourifyapp.es'] // Dominios específicos en producción
+    : process.env.NODE_ENV === 'testing'
+      ? '*' // Permitir todos los dominios en testing
+      : 'http://localhost:3000', // URL específica para desarrollo
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: process.env.NODE_ENV === 'testing' ? false : true, // Desactivar credentials en testing cuando origin es '*'
+  maxAge: 86400,
+  optionsSuccessStatus: 204
 };
 
 app.use(helmet()); // Añadir headers de seguridad

@@ -16,31 +16,13 @@ const openai = new OpenAI({
 export const chatController = {
   generateChatResponse: async (req: Request, res: Response) => {
     try {
-     
-
-     
-
-      if (process.env.NODE_ENV === 'testing') {
-        console.log('[Testing] Iniciando generación de respuesta del chat');
-      }
-
-      // Configurar headers para SSE
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
       const { messages } = req.body;
-      const tourData = messages[0];
-
-      if (!messages || !Array.isArray(messages) || !tourData) {
-        if (process.env.NODE_ENV === 'testing') {
-          console.log('[Testing] Error: Datos inválidos recibidos');
-        }
-        return res.status(400).json({ error: 'Se requiere un array de mensajes con datos válidos' });
-      }
-
-      if (process.env.NODE_ENV === 'testing') {
-        console.log('[Testing] Iniciando llamada a OpenAI');
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: 'Datos inválidos' });
       }
 
       const stream = await openai.chat.completions.create({
@@ -106,22 +88,22 @@ export const chatController = {
           {
             role: "user",
             content: `Necesito un itinerario detallado con estos parámetros:
-            - Ciudad: ${tourData.Ciudad}
-            - Turismo/Actividades: ${tourData.TipoTurismo}
-            - Llegada: ${tourData.DiaLlegada}
-            - Salida: ${tourData.DiaSalida}
-            - Transporte: ${tourData.MediosTransporte}
-            - Presupuesto/persona: ${tourData.Presupuesto} ${tourData.DivisaUsar}
-            - Paradas obligatorias: ${tourData.ParadasObligatorias}
-            - Excluir: ${tourData.ParadasBanned}
-            - Actividades/día: ${tourData.NumActividades}
-            - Comentarios: ${tourData.Comentarios}`
+            - Ciudad: ${messages[0].Ciudad}
+            - Turismo/Actividades: ${messages[0].TipoTurismo}
+            - Llegada: ${messages[0].DiaLlegada}
+            - Salida: ${messages[0].DiaSalida}
+            - Transporte: ${messages[0].MediosTransporte}
+            - Presupuesto/persona: ${messages[0].Presupuesto} ${messages[0].DivisaUsar}
+            - Paradas obligatorias: ${messages[0].ParadasObligatorias}
+            - Excluir: ${messages[0].ParadasBanned}
+            - Actividades/día: ${messages[0].NumActividades}
+            - Comentarios: ${messages[0].Comentarios}`
 
           },
           {
             role: "assistant",
             content: `Entendido. Generaré un itinerario en formato JSON que incluirá:
-            - ${tourData.NumActividades} actividades diarias
+            - ${messages[0].NumActividades} actividades diarias
             - Tiempos de desplazamiento realistas
             - Precios actualizados
             - Rutas optimizadas
@@ -131,17 +113,13 @@ export const chatController = {
         ]
       });
 
-      let jsonBuffer = '';
-
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
-          jsonBuffer += content;
           res.write(`${JSON.stringify({ content })}\n\n`);
           if (typeof (res as any).flush === 'function') {
             (res as any).flush();
           }
-          
         }
       }
 
@@ -149,15 +127,6 @@ export const chatController = {
       res.end();
 
     } catch (error: any) {
-      console.error('Error detallado:', error);
-      // Asegurar que los headers de CORS se envíen incluso en caso de error
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      
-      if (process.env.NODE_ENV === 'testing') {
-        console.log('[Testing] Error en el controlador:', error);
-      }
       res.write(`${JSON.stringify({ error: error.message })}\n\n`);
       res.end();
     }
